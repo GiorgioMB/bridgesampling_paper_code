@@ -21,7 +21,7 @@ options(pillar.neg = FALSE, pillar.subtle = FALSE, pillar.sigfig = 2)
 theme_set(bayesplot::theme_default(base_family = "sans"))
 
 ## Load utility scripts ##
-source("./utils/sim_pf.R")
+source("./utils/sim_pf.R") ##Please download them from this repo https://github.com/LuZhangstat/Pathfinder
 source("./utils/lp_utils.R")
 
 ## Color palette for plots ##
