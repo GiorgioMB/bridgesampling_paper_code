@@ -36,7 +36,7 @@ Navigate to either of the experiment directories and run the R scripts provided.
 cd posteriordb
 Rscript low_dim_gauss_mix.R
 ```
-This will execute the analysis using the predefined models and data from `posteriorDB`.
+This will execute the analysis using the predefined model and data from `posteriorDB`.
 
 ## Contacts
 For any queries related to the repository, please contact:
