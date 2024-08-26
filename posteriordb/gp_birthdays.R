@@ -88,7 +88,7 @@ write.csv(results, file = "pathfinderbirthdays_smoothed.csv", row.names = FALSE)
 max_iter <- 100
 for(j in 1:max_iter){
   fit_result <- run_birthday_model("./births_usa_1969.csv", "gpbf6.stan", seed = j)
-  res <- bridgesampling:::bridge_sampler.CmdStanMCMC(fit_result, num_splits = 2, total_perms = 1, seed = j, return_always = TRUE)
+  res <- bridge_sampler(fit_result, num_splits = 2, total_perms = 1, seed = j, return_always = TRUE)
   results <- rbind(results, data.frame(logml = res$logml, 
                                        pareto_k_numi = res$pareto_k_numi, 
                                        pareto_k_deni = res$pareto_k_deni,
