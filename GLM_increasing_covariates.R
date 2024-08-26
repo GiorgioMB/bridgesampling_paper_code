@@ -1,4 +1,4 @@
-#devtools::install_github("GiorgioMB/bridgesamplingparetok", force = TRUE)
+devtools::install_github("GiorgioMB/bridgesamplingparetok", force = TRUE)
 library(rstanarm)
 library(tidyr)
 library(dplyr)
@@ -57,6 +57,8 @@ for (k in 10:103) {
     mcse_logml_brute = I(list(mcse_logml_old))
   )
   results <- rbind(results, new_row)
+  print("Saving progress")
+  saveRDS(results, "/scratch/work/micaleg1/bridge_sampling/glm_storing_everything.rds")
+  print("Progress saved")
   print(paste("Number of covariates", k, "finished"))
 }
-saveRDS(results, "/scratch/work/micaleg1/bridge_sampling/glm_storing_everything.rds")
