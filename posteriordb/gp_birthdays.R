@@ -13,7 +13,7 @@ library(parallel)
 library(foreach)
 set.seed(1)
 ## Set up the environment ##
-setwd("/scratch/work/micaleg1/pathfinder")
+setwd("../posteriordb/")
 options(mc.cores = parallel::detectCores())
 print(parallel::detectCores())
 rstan_options(auto_write = TRUE)
