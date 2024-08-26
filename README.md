@@ -9,7 +9,7 @@ This repository contains the code and data for a research project focused on est
 
 - **R files**: Scripts for setting up the statistical models, executing the bridgesampling algorithm, and processing the results.
 - **Stan files**: Stan models used to define the Bayesian models whose posteriors are being explored.
-- **Data files**: (If applicable) Data files used in the experiments, stored in an appropriate format.
+- **Data files**: Data files used in the experiments, stored in csv format.
 
 ## Getting Started
 
