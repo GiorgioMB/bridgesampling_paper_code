@@ -1,4 +1,4 @@
-
+##Note: The bridgesampling version of CmdstanR must be installed
 
 cmdstanr::cmdstan_make_local(cpp_options=list(STAN_THREADS=TRUE),append=TRUE)
 cmdstanr::rebuild_cmdstan()
