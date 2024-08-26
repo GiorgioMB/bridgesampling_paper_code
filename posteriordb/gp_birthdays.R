@@ -21,7 +21,7 @@ options(pillar.neg = FALSE, pillar.subtle = FALSE, pillar.sigfig = 2)
 theme_set(bayesplot::theme_default(base_family = "sans"))
 
 ## Load utility scripts ##
-source("./utils/sim_pf.R") ##Please download them from this repo https://github.com/LuZhangstat/Pathfinder
+source("./utils/sim_pf.R")
 source("./utils/lp_utils.R")
 
 ## Color palette for plots ##
@@ -61,9 +61,7 @@ run_birthday_model <- function(data_path, stan_file, seed) {
   return(fit)
 }
 fit_result <- run_birthday_model("./births_usa_1969.csv", "gpbf6.stan", seed = 1)
-
-print("FINISHED :)")
-res <- bridgesampling:::bridge_sampler.CmdStanMCMC(fit_result, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE)
+res <- bridge_sampler(fit_result, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE)
 results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 for (j in 1:length(res)) {
   results <- rbind(results, data.frame(logml = res[[j]]$logml, 
@@ -73,17 +71,20 @@ for (j in 1:length(res)) {
                                        ))
 }
 write.csv(results, file = "pathfinderbirthdays.csv", row.names = FALSE)
-file1 <- read.csv("pathfinderbirthdays.csv")
-file1 <- file1[!is.na(file1$logml),]
-sum(is.na(file1$logml)) ##Very high, at ##NUM obs
-var(file1$logml, na.rm = TRUE) ##Var = ##NUM , honestly though I believe it is very high regardless
-sum(is.na(file1$pareto_k_numi.khat)) ##Pareto K never failed
-var(file1$pareto_k_numi.khat)## Var numerator = ##NUM
-var(file1$pareto_k_deni.khat)## Var denominator = ##NUM
-mean(file1$pareto_k_numi.khat) ##Mean = ##NUM
-mean(file1$pareto_k_deni.khat) ##Mean = ##NUM (note: all estimations here are rounded)
+print("FINISHED :)")
 
+res <- bridge_sampler(fit_result, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = TRUE)
 results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
+for (j in 1:length(res)) {
+  results <- rbind(results, data.frame(logml = res[[j]]$logml, 
+                                       pareto_k_numi = res[[j]]$pareto_k_numi, 
+                                       pareto_k_deni = res[[j]]$pareto_k_deni,
+                                       mcse_logml = res[[j]]$mcse_logml
+                                       ))
+}
+write.csv(results, file = "pathfinderbirthdays_smoothed.csv", row.names = FALSE)
+
+
 max_iter <- 100
 for(j in 1:max_iter){
   fit_result <- run_birthday_model("./births_usa_1969.csv", "gpbf6.stan", seed = j)
@@ -95,3 +96,17 @@ for(j in 1:max_iter){
                                        ))
 }
 write.csv(results, file = "pathfinderbirthdays_bruteforce.csv", row.names = FALSE)
+print("FINISHED :)")
+
+results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
+max_iter <- 100
+for(j in 1:max_iter){
+  fit_result <- run_birthday_model("./births_usa_1969.csv", "gpbf6.stan", seed = j)
+  res <- bridge_sampler(fit_result, num_splits = 2, total_perms = 1, seed = j, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = TRUE)
+  results <- rbind(results, data.frame(logml = res$logml, 
+                                       pareto_k_numi = res$pareto_k_numi, 
+                                       pareto_k_deni = res$pareto_k_deni,
+                                       mcse_logml = res$mcse_logml
+                                       ))
+}
+write.csv(results, file = "pathfinderbirthdays_bruteforce_smoothed.csv", row.names = FALSE)
