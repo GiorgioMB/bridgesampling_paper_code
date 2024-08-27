@@ -22,7 +22,7 @@ model <- stan_model(model_code = sc)
 write_stan_file(sc, dir = getwd(), basename = "sblrc.stan")
 ## RStan model fit
 fit_stan <- stan(file = "sblrc.stan", data = data, 
-                   chains = 4, warmup = 1000, iter = 4000, thin = 1, seed = i)
+                   chains = 4, warmup = 1000, iter = 4000, thin = 1, seed = 1)
 print("Finished fitting the model")
 res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())
 results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
