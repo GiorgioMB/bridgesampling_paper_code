@@ -38,7 +38,7 @@ fit_stan <- model$sample(data = data,
                          iter_sampling = 4000, 
                          thin = 1, 
                          seed = 1)
-res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE)
+res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())
 results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 for (j in 1:length(res)) {
   results <- rbind(results, data.frame(logml = res[[j]]$logml, 
@@ -76,7 +76,7 @@ for (i in 1:100) {
                            iter_sampling = 4000, 
                            thin = 1, 
                            seed = i)
-  res <- bridge_sampler(fit_stan, seed = i, return_always = TRUE)
+  res <- bridge_sampler(fit_stan, seed = i, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())
   results_bruteforce <- rbind(results_bruteforce, data.frame(logml = res$logml, 
                                        pareto_k_numi = res$pareto_k_numi, 
                                        pareto_k_deni = res$pareto_k_deni,
