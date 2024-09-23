@@ -8,7 +8,7 @@ library(bridgesampling)
 set.seed(1)
 n <- 100
 results <- data.frame(k=integer(), logml_reshuffling = list(), pareto_k_numi_reshuffling = list(), pareto_k_deni_reshuffling = list(), mcse_logml_reshuffling = list(), logml_brute = list(), pareto_k_numi_brute = list(), pareto_k_deni_brute = list(), mcse_logml_brute = list(), numi_split = list(), deni_split = list(), numi_brute = list(), deni_brute = list())
-for (k in 10:104) {
+for (k in 10:103) {
   print(paste("Number of covariates", k, "started"))
   set.seed(k)
   # Generate data
