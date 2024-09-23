@@ -37,7 +37,7 @@ for (k in 10:104) {
   deni_brute <- numeric(100)
 
   for (i in 1:100) {
-    set.seed(i)
+    set.seed(k + i)
     results_old <- bridge_sampler(samples, method = "normal", cores=parallel::detectCores())
     logml_old[[i]] <- results_old$logml
     pareto_k_numi_old[[i]] <- results_old$pareto_k_numi[[1]]$khat
@@ -47,7 +47,7 @@ for (k in 10:104) {
     deni_brute[[i]] <- results_old$deni
 
     if(i>1){
-      set.seed(k)
+      set.seed(k + i + 1)
       samples <- stan_glm(y ~ X, data=df, mean_PPD=FALSE, prior=hs(), seed=1, cores=parallel::detectCores(), diagnostic_file=file.path(tempdir(), "df2.csv"))
     }
   }
