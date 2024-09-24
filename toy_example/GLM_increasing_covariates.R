@@ -37,6 +37,7 @@ for (k in 10:103) {
   deni_brute <- numeric(100)
 
   for (i in 1:100) {
+    print(paste("Iteration", i))
     set.seed(k + i)
     results_old <- bridge_sampler(samples, method = "normal", cores=parallel::detectCores())
     logml_old[[i]] <- results_old$logml
