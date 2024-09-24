@@ -25,7 +25,7 @@ fit_stan <- stan(file = "bball.stan", data = data,
                  chains = 4, warmup = 1000, iter = 6000, thin = 1, seed = 1)
 
 print("Finished fitting the model")
-res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())
+res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())[[1]]
 results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 for (j in 1:length(res)) {
   results <- rbind(results, data.frame(logml = res[[j]]$logml, 
@@ -36,7 +36,7 @@ for (j in 1:length(res)) {
 }
 
 write.csv(results, file = "bball_pathfinder.csv", row.names = FALSE)
-res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = TRUE)
+res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = TRUE)[[1]]
 results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 for (j in 1:length(res)) {
   results <- rbind(results, data.frame(logml = res[[j]]$logml, 
