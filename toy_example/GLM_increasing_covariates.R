@@ -7,7 +7,7 @@ library(ggplot2)
 library(bridgesampling)
 set.seed(1)
 n <- 100
-results <- data.frame(k=integer(), logml_reshuffling = list(), pareto_k_numi_reshuffling = list(), pareto_k_deni_reshuffling = list(), mcse_logml_reshuffling = list(), logml_brute = list(), pareto_k_numi_brute = list(), pareto_k_deni_brute = list(), mcse_logml_brute = list(), numi_split = list(), deni_split = list(), numi_brute = list(), deni_brute = list())
+results <- data.frame(k=integer(), logml_reshuffling = list(), pareto_k_logml_diff = numeric(), pareto_k_numi_reshuffling = list(), pareto_k_deni_reshuffling = list(), mcse_logml_reshuffling = list(), logml_brute = list(), pareto_k_numi_brute = list(), pareto_k_deni_brute = list(), mcse_logml_brute = list(), numi_split = list(), deni_split = list(), numi_brute = list(), deni_brute = list())
 for (k in 10:103) {
   print(paste("Number of covariates", k, "started"))
   set.seed(k)
@@ -22,6 +22,8 @@ for (k in 10:103) {
   set.seed(k)
   samples <- stan_glm(y ~ X, data=df, mean_PPD=FALSE, prior=hs(), seed=1, cores=parallel::detectCores(), diagnostic_file=file.path(tempdir(), "df2.csv"))
   results_mine <- bridge_sampler(samples, method = "normal", num_splits = 6, total_perms = 100, return_always = TRUE, cores = parallel::detectCores())
+  pareto_whole <- results_mine[[2]]
+  results_mine <- results_mine[[1]]
   logml_reshuffle <- lapply(results_mine, function(x) x$logml)
   pareto_k_numi_reshuffle <- lapply(results_mine, function(x) x$pareto_k_numi[[1]]$khat)
   pareto_k_deni_reshuffle <- lapply(results_mine, function(x) x$pareto_k_numi[[1]]$khat)
@@ -60,6 +62,7 @@ for (k in 10:103) {
     pareto_k_deni_reshuffling = I(list(pareto_k_deni_reshuffle)),
     mcse_logml_reshuffling = I(list(mcse_logml_reshuffling)),
     logml_brute = I(list(logml_old)),
+    pareto_k_logml_diff = pareto_whole,
     pareto_k_numi_brute = I(list(pareto_k_numi_old)),
     pareto_k_deni_brute = I(list(pareto_k_deni_old)),
     mcse_logml_brute = I(list(mcse_logml_old)),
