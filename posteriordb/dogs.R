@@ -2,6 +2,7 @@
 remotes::install_github("stan-dev/cmdstanr@bridge_sampler-method")
 cmdstanr::cmdstan_make_local(cpp_options=list(STAN_THREADS=TRUE),append=TRUE)
 cmdstanr::rebuild_cmdstan()
+Sys.setenv(GITHUB_PAT = "YOUR_TOKEN")
 setwd("../posteriordb/")
 library(rstan)
 library(parallel)
@@ -11,8 +12,6 @@ library(bridgesampling)
 rstan_options(auto_write = TRUE)
 library(cmdstanr)
 library(bayesplot)
-## install the beta release version of R package posterior
-# install.packages("posterior", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
 library(posteriordb)
 library(posterior)
 source("./utils/sim_pf.R")
@@ -40,7 +39,7 @@ fit_stan <- model_cmdstanr$sample(data = data,
                                   init = init_val,
                                   seed = 1)
 print("Finished fitting the model")
-res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())
+res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())[[1]]
 results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 for (j in 1:length(res)) {
   results <- rbind(results, data.frame(logml = res[[j]]$logml, 
@@ -52,9 +51,7 @@ for (j in 1:length(res)) {
 
 write.csv(results, file = "dogs_pathfinder.csv", row.names = FALSE)
 
-
-
-res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = TRUE)
+res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = TRUE)[[1]]
 results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 for (j in 1:length(res)) {
   results <- rbind(results, data.frame(logml = res[[j]]$logml, 
