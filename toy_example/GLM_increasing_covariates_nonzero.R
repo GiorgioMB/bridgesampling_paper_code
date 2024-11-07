@@ -1,4 +1,4 @@
-#devtools::install_github("GiorgioMB/bridgesamplingparetok", force = TRUE)
+devtools::install_github("GiorgioMB/bridgesamplingparetok", force = TRUE)
 library(rstanarm)
 library(tidyr)
 library(dplyr)
