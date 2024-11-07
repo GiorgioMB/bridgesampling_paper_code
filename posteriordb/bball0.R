@@ -1,4 +1,9 @@
+##Note: The bridgesampling version of CmdstanR must be installed, comment the line below if already installed
+remotes::install_github("stan-dev/cmdstanr@bridge_sampler-method")
+cmdstanr::cmdstan_make_local(cpp_options=list(STAN_THREADS=TRUE),append=TRUE)
+cmdstanr::rebuild_cmdstan()
 setwd("../posteriordb/")
+Sys.setenv(GITHUB_PAT = "YOUR_TOKEN")
 library(rstan)
 library(parallel)
 library(foreach)
@@ -7,8 +12,6 @@ library(bridgesampling)
 rstan_options(auto_write = TRUE)
 library(cmdstanr)
 library(bayesplot)
-## install the beta release version of R package posterior
-# install.packages("posterior", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
 library(posteriordb)
 library(posterior)
 source("./utils/sim_pf.R")
@@ -20,10 +23,14 @@ sc <- stan_code(po)
 data <- get_data(po)
 model <- stan_model(model_code = sc)
 write_stan_file(sc, dir = getwd(), basename = "bball0.stan")
-
-fit_stan <- stan(file = "bball0.stan", data = data, 
-                 chains = 4, warmup = 1000, iter = 6000, thin = 1, seed = 1)
-
+model_cmdstanr <- cmdstan_model("bball0.stan", force_recompile = TRUE)
+fit_stan <- model_cmdstanr$sample(data = data,
+                                  chains = 4, 
+                                  iter_warmup = 1000, 
+                                  iter_sampling = 4000, 
+                                  thin = 1,
+                                  sig_figs=9,
+                                  seed = 1)
 print("Finished fitting the model")
 res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())[[1]]
 results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
@@ -54,8 +61,14 @@ for (i in 1:100) {
   iteration_successful <- FALSE
   while(!iteration_successful){
     try({
-      fit_stan <- stan(file = "bball0.stan", data = data, 
-                   chains = 4, warmup = 1000, iter = 6000, thin = 1)
+      fit_stan <- model_cmdstanr$sample(data = data,
+                                        chains = 4, 
+                                        iter_warmup = 1000, 
+                                        iter_sampling = 4000, 
+                                        thin = 1, 
+                                        sig_figs=9
+                                        )
+
       res <- bridge_sampler(fit_stan, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())
       if (is.infinite(res$pareto_k_numi[[1]]$khat)) {
         ##Make it go to the next iteration
@@ -84,15 +97,18 @@ for (i in 1:100) {
   iteration_successful <- FALSE
   while(!iteration_successful){
     try({
-      fit_stan <- stan(file = "bball0.stan", data = data, 
-                   chains = 4, warmup = 1000, iter = 6000, thin = 1)
+      fit_stan <- model_cmdstanr$sample(data = data,
+                                        chains = 4, 
+                                        iter_warmup = 1000, 
+                                        iter_sampling = 4000, 
+                                        thin = 1, 
+                                        sig_figs=9
+                                        )
       res <- bridge_sampler(fit_stan, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = TRUE)
       if (is.infinite(res$pareto_k_numi[[1]]$khat)) {
-        ##Make it go to the next iteration
         stop("Infinite khat")
       }
       if (is.infinite(res$pareto_k_deni[[1]]$khat)) {
-        ##Make it go to the next iteration
         stop("Infinite khat")
       }
       results_bruteforce <- rbind(results_bruteforce, data.frame(logml = res$logml, 
