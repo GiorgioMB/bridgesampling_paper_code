@@ -2,6 +2,7 @@
 remotes::install_github("stan-dev/cmdstanr@bridge_sampler-method")
 cmdstanr::cmdstan_make_local(cpp_options=list(STAN_THREADS=TRUE),append=TRUE)
 cmdstanr::rebuild_cmdstan()
+Sys.setenv(GITHUB_PAT = "YOUR_TOKEN")
 setwd("../posteriordb/")
 library(rstan)
 library(parallel)
