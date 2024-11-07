@@ -2,7 +2,8 @@
 remotes::install_github("stan-dev/cmdstanr@bridge_sampler-method")
 cmdstanr::cmdstan_make_local(cpp_options=list(STAN_THREADS=TRUE),append=TRUE)
 cmdstanr::rebuild_cmdstan()
-## Load necessary libraries ##
+Sys.setenv(GITHUB_PAT = "YOUR_TOKEN")
+setwd("../posteriordb/")
 library(rstan)
 library(tidyverse)
 library(readr)
@@ -14,8 +15,6 @@ library(loo)
 library(parallel)
 library(foreach)
 set.seed(1)
-## Set up the environment ##
-setwd("../posteriordb/")
 options(mc.cores = parallel::detectCores())
 print(parallel::detectCores())
 rstan_options(auto_write = TRUE)
@@ -63,7 +62,7 @@ run_birthday_model <- function(data_path, stan_file, seed) {
   return(fit)
 }
 fit_result <- run_birthday_model("./births_usa_1969.csv", "gpbf6.stan", seed = 1)
-res <- bridge_sampler(fit_result, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE)
+res <- bridge_sampler(fit_result, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE)[[1]]
 results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 for (j in 1:length(res)) {
   results <- rbind(results, data.frame(logml = res[[j]]$logml, 
@@ -75,7 +74,7 @@ for (j in 1:length(res)) {
 write.csv(results, file = "pathfinderbirthdays.csv", row.names = FALSE)
 print("FINISHED :)")
 
-res <- bridge_sampler(fit_result, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = TRUE)
+res <- bridge_sampler(fit_result, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = TRUE)[[1]]
 results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 for (j in 1:length(res)) {
   results <- rbind(results, data.frame(logml = res[[j]]$logml, 
