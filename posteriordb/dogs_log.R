@@ -1,7 +1,9 @@
-setwd("/scratch/work/micaleg1/pathfinder")
-Sys.setenv(GITHUB_PAT = "YOUR_TOKEN")
+##Note: The bridgesampling version of CmdstanR must be installed, comment the line below if already installed
+remotes::install_github("stan-dev/cmdstanr@bridge_sampler-method")
 cmdstanr::cmdstan_make_local(cpp_options=list(STAN_THREADS=TRUE),append=TRUE)
 cmdstanr::rebuild_cmdstan()
+Sys.setenv(GITHUB_PAT = "YOUR_TOKEN")
+setwd("../posteriordb/")
 library(rstan)
 library(parallel)
 library(foreach)
