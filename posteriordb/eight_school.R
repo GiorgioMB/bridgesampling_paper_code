@@ -1,3 +1,8 @@
+##Note: The bridgesampling version of CmdstanR must be installed, comment the line below if already installed
+remotes::install_github("stan-dev/cmdstanr@bridge_sampler-method")
+cmdstanr::cmdstan_make_local(cpp_options=list(STAN_THREADS=TRUE),append=TRUE)
+cmdstanr::rebuild_cmdstan()
+Sys.setenv(GITHUB_PAT = "YOUR_TOKEN")
 setwd("../posteriordb/")
 library(rstan)
 library(parallel)
@@ -7,8 +12,6 @@ library(bridgesampling)
 rstan_options(auto_write = TRUE)
 library(cmdstanr)
 library(bayesplot)
-## install the beta release version of R package posterior
-# install.packages("posterior", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
 library(posteriordb)
 library(posterior)
 source("./utils/sim_pf.R")
@@ -20,12 +23,24 @@ sc <- stan_code(po)
 data <- get_data(po)
 model <- stan_model(model_code = sc)
 write_stan_file(sc, dir = getwd(), basename = "eight_schools.stan")
-## RStan model fit
-fit_stan <- stan(file = "eight_schools.stan", data = data, 
-                 chains = 4, warmup = 1000, iter = 5000, thin = 1, seed = 1)
-
+model_cmdstanr <- cmdstan_model("eight_schools.stan", force_recompile = TRUE)
+init_val <- model_cmdstanr$pathfinder(data = data, 
+                                      num_paths = 10, 
+                                      single_path_draws = 40, 
+                                      draws = 400, 
+                                      history_size = 50, 
+                                      max_lbfgs_iters = 100, 
+                                      psis_resample = FALSE)
+fit_stan <- model_cmdstanr$sample(data = data,
+                                  chains = 4, 
+                                  iter_warmup = 1000, 
+                                  iter_sampling = 4000, 
+                                  thin = 1,
+                                  sig_figs=9,
+                                  init = init_val,
+                                  seed = 1)
 print("Finished fitting the model")
-res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())
+res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())[[1]]
 results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 for (j in 1:length(res)) {
   results <- rbind(results, data.frame(logml = res[[j]]$logml, 
@@ -38,7 +53,7 @@ for (j in 1:length(res)) {
 write.csv(results, file = "eight_schools_pathfinder.csv", row.names = FALSE)
 
 
-res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = TRUE)
+res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = TRUE)[[1]]
 results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 for (j in 1:length(res)) {
   results <- rbind(results, data.frame(logml = res[[j]]$logml, 
@@ -54,8 +69,21 @@ write.csv(results, file = "eight_schools_pathfinder_smoothed.csv", row.names = F
 results_bruteforce <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 for (i in 1:100) {
   print(paste("Iteration", i))
-  fit_stan <- stan(file = "eight_schools.stan", data = data, 
-                   chains = 4, warmup = 1000, iter = 4000, thin = 1, seed = i)
+    init_val <- model_cmdstanr$pathfinder(data = data, 
+                                        num_paths = 10, 
+                                        single_path_draws = 40, 
+                                        draws = 400, 
+                                        history_size = 50, 
+                                        max_lbfgs_iters = 100, 
+                                        psis_resample = FALSE)
+    fit_stan <- model_cmdstanr$sample(data = data,
+                                    chains = 4, 
+                                    iter_warmup = 1000, 
+                                    iter_sampling = 4000, 
+                                    thin = 1,
+                                    sig_figs=9,
+                                    init = init_val,
+                                    seed = i)
   res <- bridge_sampler(fit_stan, seed = i, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())
   results_bruteforce <- rbind(results_bruteforce, data.frame(logml = res$logml, 
                                        pareto_k_numi = res$pareto_k_numi, 
@@ -70,8 +98,21 @@ write.csv(results_bruteforce, file = "eight_schools_pathfinder_bruteforce.csv", 
 results_bruteforce <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 for (i in 1:100) {
   print(paste("Iteration", i))
-  fit_stan <- stan(file = "eight_schools.stan", data = data, 
-                   chains = 4, warmup = 1000, iter = 4000, thin = 1, seed = i)
+  init_val <- model_cmdstanr$pathfinder(data = data, 
+                                        num_paths = 10, 
+                                        single_path_draws = 40, 
+                                        draws = 400, 
+                                        history_size = 50, 
+                                        max_lbfgs_iters = 100, 
+                                        psis_resample = FALSE)
+    fit_stan <- model_cmdstanr$sample(data = data,
+                                    chains = 4, 
+                                    iter_warmup = 1000, 
+                                    iter_sampling = 4000, 
+                                    thin = 1,
+                                    sig_figs=9,
+                                    init = init_val,
+                                    seed = i)
   res <- bridge_sampler(fit_stan, seed = i, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = TRUE)
   results_bruteforce <- rbind(results_bruteforce, data.frame(logml = res$logml, 
                                        pareto_k_numi = res$pareto_k_numi, 
