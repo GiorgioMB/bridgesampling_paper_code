@@ -1,8 +1,9 @@
 ##Note: The bridgesampling version of CmdstanR must be installed, comment the line below if already installed
 remotes::install_github("stan-dev/cmdstanr@bridge_sampler-method")
+Sys.setenv(GITHUB_PAT = "YOUR_TOKEN")
 cmdstanr::cmdstan_make_local(cpp_options=list(STAN_THREADS=TRUE),append=TRUE)
 cmdstanr::rebuild_cmdstan()
-setwd("../posteriordb/")
+setwd("../pathfinder")
 library(rstan)
 library(parallel)
 library(foreach)
@@ -38,7 +39,7 @@ fit_stan <- model_cmdstanr$sample(data = data,
                                   init = init_val,
                                   seed = 1)
 print("Finished fitting the model")
-res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())[[1]]
+res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())
 results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 for (j in 1:length(res)) {
   results <- rbind(results, data.frame(logml = res[[j]]$logml, 
@@ -47,7 +48,6 @@ for (j in 1:length(res)) {
                                        mcse_logml = res[[j]]$mcse_logml
                                        ))
 }
-
 write.csv(results, file = "ark_pathfinder.csv", row.names = FALSE)
 results_bruteforce <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 for (i in 1:100) {
