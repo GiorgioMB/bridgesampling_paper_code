@@ -1,3 +1,8 @@
+##Note: The bridgesampling version of CmdstanR must be installed, comment the line below if already installed
+remotes::install_github("stan-dev/cmdstanr@bridge_sampler-method")
+cmdstanr::cmdstan_make_local(cpp_options=list(STAN_THREADS=TRUE),append=TRUE)
+cmdstanr::rebuild_cmdstan()
+Sys.setenv(GITHUB_PAT = "YOUR_TOKEN")
 setwd("../posteriordb/")
 library(rstan)
 library(parallel)
@@ -7,8 +12,6 @@ library(bridgesampling)
 rstan_options(auto_write = TRUE)
 library(cmdstanr)
 library(bayesplot)
-## install the beta release version of R package posterior
-# install.packages("posterior", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
 library(posteriordb)
 library(posterior)
 source("./utils/sim_pf.R")
@@ -21,32 +24,67 @@ sc <- stan_code(po)
 data <- get_data(po)
 model <- stan_model(model_code = sc)
 write_stan_file(sc, dir = getwd(), basename = "garch.stan")
-## RStan model fit
-fit_stan <- stan(file = "garch.stan", data = data, 
-                 chains = 4, warmup = 1000, iter = 6000, thin = 1, seed = 1)
+model_cmdstanr <- cmdstan_model("garch.stan", force_recompile = TRUE)
+init_val <- model_cmdstanr$pathfinder(data = data, 
+                                      num_paths = 10, 
+                                      single_path_draws = 40, 
+                                      draws = 400, 
+                                      history_size = 50, 
+                                      max_lbfgs_iters = 100, 
+                                      psis_resample = FALSE)
+fit_stan <- model_cmdstanr$sample(data = data,
+                                  chains = 4, 
+                                  iter_warmup = 1000, 
+                                  iter_sampling = 4000, 
+                                  thin = 1, 
+                                  init = init_val,
+                                  seed = 1)
+
 
 print("Finished fitting the model")
-res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())
-results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
-for (j in 1:length(res)) {
-  results <- rbind(results, data.frame(logml = res[[j]]$logml, 
-                                       pareto_k_numi = res[[j]]$pareto_k_numi, 
-                                       pareto_k_deni = res[[j]]$pareto_k_deni,
-                                       mcse_logml = res[[j]]$mcse_logml
+res <- bridge_sampler(fit_stan, num_splits = 6, total_perms = 300, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())
+split_1 <- res[[1]]
+split_2 <- res[[2]]
+results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric(), split = list())
+for (j in 1:length(split_1)) {
+  results <- rbind(results, data.frame(logml = split_1[[j]]$logml, 
+                                       pareto_k_numi = split_1[[j]]$pareto_k_numi, 
+                                       pareto_k_deni = split_1[[j]]$pareto_k_deni,
+                                       mcse_logml = split_1[[j]]$mcse_logml
                                        ))
 }
-
+write.csv(split_2, file = "garch_pathfinder_split2.csv", row.names = FALSE)
 write.csv(results, file = "garch_pathfinder.csv", row.names = FALSE)
 results_bruteforce <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
-for (i in 1:100) {
-  print(paste("Iteration", i))
-  fit_stan <- stan(file = "garch.stan", data = data, 
-                   chains = 4, warmup = 1000, iter = 6000, thin = 1, seed = i)
-  res <- bridge_sampler(fit_stan, seed = i, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())
-  results_bruteforce <- rbind(results_bruteforce, data.frame(logml = res$logml, 
-                                       pareto_k_numi = res$pareto_k_numi, 
-                                       pareto_k_deni = res$pareto_k_deni,
-                                       mcse_logml = res$mcse_logml
-                                       ))
+for (i in 1:300) {
+  iteration_complete <- FALSE
+  while(!iteration_complete){
+    tryCatch({
+        print(paste("Iteration", i))
+        init_val <- model_cmdstanr$pathfinder(data = data, 
+                                            num_paths = 10, 
+                                            single_path_draws = 40, 
+                                            draws = 400, 
+                                            history_size = 50, 
+                                            max_lbfgs_iters = 100, 
+                                            psis_resample = FALSE)
+        fit_stan <- model_cmdstanr$sample(data = data,
+                                          chains = 4, 
+                                          iter_warmup = 1000, 
+                                          iter_sampling = 4000, 
+                                          thin = 1, 
+                                          init = init_val,
+                                          seed = i)
+        res <- bridge_sampler(fit_stan, seed = i, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores())
+        results_bruteforce <- rbind(results_bruteforce, data.frame(logml = res$logml, 
+                                            pareto_k_numi = res$pareto_k_numi, 
+                                            pareto_k_deni = res$pareto_k_deni,
+                                            mcse_logml = res$mcse_logml
+                                            ))
+        iteration_complete <- TRUE
+    }, error = function(e) {
+      print("Error in iteration")
+    })
+  }
 }
 write.csv(results_bruteforce, file = "garch_pathfinder_bruteforce.csv", row.names = FALSE)
