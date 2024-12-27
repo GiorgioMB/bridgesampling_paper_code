@@ -4,7 +4,7 @@ Sys.setenv(GITHUB_PAT = "YOUR_TOKEN")
 
 cmdstanr::cmdstan_make_local(cpp_options=list(STAN_THREADS=TRUE),append=TRUE)
 cmdstanr::rebuild_cmdstan()
-setwd("/scratch/work/micaleg1/pathfinder")
+setwd("posteriordb")
 library(rstan)
 library(parallel)
 library(foreach)
