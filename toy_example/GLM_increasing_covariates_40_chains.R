@@ -1,4 +1,4 @@
-#devtools::install_github("GiorgioMB/bridgesamplingparetok", force = TRUE)
+devtools::install_github("GiorgioMB/bridgesamplingparetok", force = TRUE)
 library(rstanarm)
 library(tidyr)
 library(dplyr)
@@ -8,7 +8,7 @@ library(bridgesampling)
 set.seed(1)
 n <- 100
 results <- data.frame(k=integer(), logml_reshuffling = list(), pareto_k_numi_reshuffling = list(), pareto_k_deni_reshuffling = list(), mcse_logml_reshuffling = list(), logml_brute = list(), pareto_k_numi_brute = list(), pareto_k_deni_brute = list(), mcse_logml_brute = list(), numi_split = list(), deni_split = list(), numi_brute = list(), deni_brute = list())
-for (k in 10:30) {
+for (k in 10:104) {
   print(paste("Number of covariates", k, "started"))
   set.seed(k)
   # Generate data
@@ -69,7 +69,7 @@ for (k in 10:30) {
   )
   results <- rbind(results, new_row)
   print("Saving progress")
-  saveRDS(results, "/scratch/work/micaleg1/bridge_sampling/more_chains_glm_storing_everything.rds")
+  saveRDS(results, "more_chains_glm_storing_everything.rds")
   print("Progress saved")
   print(paste("Number of covariates", k, "finished"))
 }
