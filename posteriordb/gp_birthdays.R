@@ -49,9 +49,16 @@ run_birthday_model <- function(data_path, stan_file, seed) {
   return(fit)
 }
 
-
 fit_result <- run_birthday_model("./births_usa_1969.csv", "gpbf6.stan", seed = 1)
-res <- bridge_sampler(fit_result, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = FALSE)[[1]]
+res <- bridge_sampler(fit_result, 
+                      num_splits = 6, 
+                      total_perms = 100, 
+                      seed = 1, 
+                      return_always = TRUE, 
+                      verbose = TRUE, 
+                      cores = parallel::detectCores(), 
+                      pareto_smoothing_all = FALSE,
+                      calculate_covariance = TRUE)[[1]]
 numi_split <- I(list(lapply(res, function(x) x$numi)))
 deni_split <- I(list(lapply(res, function(x) x$deni)))
 pareto_k_numi_10 <- extract_khat(numi_split, n_draws = 10)[[1]]
@@ -78,7 +85,52 @@ for (j in 1:length(res)) {
 write.csv(results, file = "pathfinderbirthdays.csv", row.names = FALSE)
 
 
-res <- bridge_sampler(fit_result, num_splits = 6, total_perms = 100, seed = 1, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = TRUE)[[1]]
+
+res <- bridge_sampler(fit_result, 
+                      num_splits = 6, 
+                      total_perms = 100, 
+                      seed = 1, 
+                      return_always = TRUE, 
+                      verbose = TRUE, 
+                      cores = parallel::detectCores(), 
+                      pareto_smoothing_all = FALSE,
+                      calculate_covariance = FALSE)[[1]]
+numi_split <- I(list(lapply(res, function(x) x$numi)))
+deni_split <- I(list(lapply(res, function(x) x$deni)))
+pareto_k_numi_10 <- extract_khat(numi_split, n_draws = 10)[[1]]
+pareto_k_deni_10 <- extract_khat(deni_split, n_draws = 10)[[1]]
+pareto_k_numi_20 <- extract_khat(numi_split, n_draws = 20)[[1]]
+pareto_k_deni_20 <- extract_khat(deni_split, n_draws = 20)[[1]]
+print(length(pareto_k_numi_10))
+print(length(pareto_k_deni_10))
+print(length(pareto_k_numi_20))
+print(length(pareto_k_deni_20))
+print(length(res))
+results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric(), pareto_k_numi10 = numeric(), pareto_k_deni10 = numeric(), pareto_k_numi20 = numeric(), pareto_k_deni20 = numeric())
+for (j in 1:length(res)) {
+  results <- rbind(results, data.frame(logml = res[[j]]$logml, 
+                                       pareto_k_numi = res[[j]]$pareto_k_numi, 
+                                       pareto_k_deni = res[[j]]$pareto_k_deni,
+                                       mcse_logml = res[[j]]$mcse_logml,
+                                        pareto_k_numi10 = pareto_k_numi_10[[j]],
+                                        pareto_k_deni10 = pareto_k_deni_10[[j]],
+                                        pareto_k_numi20 = pareto_k_numi_20[[j]],
+                                        pareto_k_deni20 = pareto_k_deni_20[[j]]
+                                       ))
+}
+write.csv(results, file = "pathfinderbirthdays_no_cov.csv", row.names = FALSE)
+
+
+
+res <- bridge_sampler(fit_result, 
+                      num_splits = 6, 
+                      total_perms = 100, 
+                      seed = 1, 
+                      return_always = TRUE, 
+                      verbose = TRUE, 
+                      cores = parallel::detectCores(), 
+                      pareto_smoothing_all = TRUE,
+                      calculate_covariance = TRUE)[[1]]
 numi_split <- I(list(lapply(res, function(x) x$numi)))
 deni_split <- I(list(lapply(res, function(x) x$deni)))
 pareto_k_numi_10 <- extract_khat(numi_split, n_draws = 10)[[1]]
@@ -106,13 +158,57 @@ write.csv(results, file = "pathfinderbirthdays_smoothed.csv", row.names = FALSE)
 
 
 
+res <- bridge_sampler(fit_result, 
+                      num_splits = 6, 
+                      total_perms = 100, 
+                      seed = 1, 
+                      return_always = TRUE, 
+                      verbose = TRUE, 
+                      cores = parallel::detectCores(), 
+                      pareto_smoothing_all = TRUE,
+                      calculate_covariance = FALSE)[[1]]
+numi_split <- I(list(lapply(res, function(x) x$numi)))
+deni_split <- I(list(lapply(res, function(x) x$deni)))
+pareto_k_numi_10 <- extract_khat(numi_split, n_draws = 10)[[1]]
+pareto_k_deni_10 <- extract_khat(deni_split, n_draws = 10)[[1]]
+pareto_k_numi_20 <- extract_khat(numi_split, n_draws = 20)[[1]]
+pareto_k_deni_20 <- extract_khat(deni_split, n_draws = 20)[[1]]
+print(length(pareto_k_numi_10))
+print(length(pareto_k_deni_10))
+print(length(pareto_k_numi_20))
+print(length(pareto_k_deni_20))
+print(length(res))
+results <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric(), pareto_k_numi10 = numeric(), pareto_k_deni10 = numeric(), pareto_k_numi20 = numeric(), pareto_k_deni20 = numeric())
+for (j in 1:length(res)) {
+  results <- rbind(results, data.frame(logml = res[[j]]$logml, 
+                                       pareto_k_numi = res[[j]]$pareto_k_numi, 
+                                       pareto_k_deni = res[[j]]$pareto_k_deni,
+                                       mcse_logml = res[[j]]$mcse_logml,
+                                        pareto_k_numi10 = pareto_k_numi_10[[j]],
+                                        pareto_k_deni10 = pareto_k_deni_10[[j]],
+                                        pareto_k_numi20 = pareto_k_numi_20[[j]],
+                                        pareto_k_deni20 = pareto_k_deni_20[[j]]
+                                       ))
+}
+write.csv(results, file = "pathfinderbirthdays_smoothed_no_cov.csv", row.names = FALSE)
+
+
+
 results_bruteforce <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 numi <- numeric(100)
 deni <- numeric(100)
 max_iter <- 100
 for(j in 1:max_iter){
   fit_result <- run_birthday_model("./births_usa_1969.csv", "gpbf6.stan", seed = j)
-  res <- bridge_sampler(fit_result, num_splits = 2, total_perms = 1, seed = j, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = FALSE)
+  res <- bridge_sampler(fit_result, 
+                        num_splits = 2, 
+                        total_perms = 1, 
+                        seed = j, 
+                        return_always = TRUE, 
+                        verbose = TRUE, 
+                        cores = parallel::detectCores(), 
+                        pareto_smoothing_all = FALSE,
+                        calculate_covariance = TRUE)
   numi[[j]] <- res$numi
   deni[[j]] <- res$deni
   results_bruteforce <- rbind(results_bruteforce, data.frame(logml = res$logml, 
@@ -138,7 +234,49 @@ deni <- numeric(100)
 max_iter <- 100
 for(j in 1:max_iter){
   fit_result <- run_birthday_model("./births_usa_1969.csv", "gpbf6.stan", seed = j)
-  res <- bridge_sampler(fit_result, num_splits = 2, total_perms = 1, seed = j, return_always = TRUE, verbose = TRUE, cores = parallel::detectCores(), pareto_smoothing_all = TRUE)
+  res <- bridge_sampler(fit_result, 
+                        num_splits = 2, 
+                        total_perms = 1, 
+                        seed = j, 
+                        return_always = TRUE, 
+                        verbose = TRUE, 
+                        cores = parallel::detectCores(), 
+                        pareto_smoothing_all = FALSE,
+                        calculate_covariance = FALSE)
+  numi[[j]] <- res$numi
+  deni[[j]] <- res$deni
+  results_bruteforce <- rbind(results_bruteforce, data.frame(logml = res$logml, 
+                                       pareto_k_numi = res$pareto_k_numi, 
+                                       pareto_k_deni = res$pareto_k_deni,
+                                       mcse_logml = res$mcse_logml
+                                       ))
+}
+numi <- I(list(numi))
+deni <- I(list(deni))
+pareto_k_numi_10_brute <- extract_khat(numi, n_draws = 10)[[1]]
+pareto_k_deni_10_brute <- extract_khat(deni, n_draws = 10)[[1]]
+pareto_k_numi_20_brute <- extract_khat(numi, n_draws = 20)[[1]]
+pareto_k_deni_20_brute <- extract_khat(deni, n_draws = 20)[[1]]
+results_bruteforce <- cbind(results_bruteforce, pareto_k_numi_10_brute, pareto_k_deni_10_brute, pareto_k_numi_20_brute, pareto_k_deni_20_brute)
+write.csv(results_bruteforce, file = "pathfinderbirthdays_bruteforce_no_cov.csv", row.names = FALSE)
+
+
+
+results_bruteforce <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
+numi <- numeric(100)
+deni <- numeric(100)
+max_iter <- 100
+for(j in 1:max_iter){
+  fit_result <- run_birthday_model("./births_usa_1969.csv", "gpbf6.stan", seed = j)
+  res <- bridge_sampler(fit_result, 
+                        num_splits = 2, 
+                        total_perms = 1, 
+                        seed = j, 
+                        return_always = TRUE, 
+                        verbose = TRUE, 
+                        cores = parallel::detectCores(), 
+                        pareto_smoothing_all = TRUE,
+                        calculate_covariance = TRUE)
   numi[[j]] <- res$numi
   deni[[j]] <- res$deni
   results_bruteforce <- rbind(results_bruteforce, data.frame(logml = res$logml, 
@@ -155,3 +293,37 @@ pareto_k_numi_20_brute <- extract_khat(numi, n_draws = 20)[[1]]
 pareto_k_deni_20_brute <- extract_khat(deni, n_draws = 20)[[1]]
 results_bruteforce <- cbind(results_bruteforce, pareto_k_numi_10_brute, pareto_k_deni_10_brute, pareto_k_numi_20_brute, pareto_k_deni_20_brute)
 write.csv(results_bruteforce, file = "pathfinderbirthdays_bruteforce_smoothed.csv", row.names = FALSE)
+
+
+
+results_bruteforce <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
+numi <- numeric(100)
+deni <- numeric(100)
+max_iter <- 100
+for(j in 1:max_iter){
+  fit_result <- run_birthday_model("./births_usa_1969.csv", "gpbf6.stan", seed = j)
+  res <- bridge_sampler(fit_result, 
+                        num_splits = 2, 
+                        total_perms = 1, 
+                        seed = j, 
+                        return_always = TRUE, 
+                        verbose = TRUE, 
+                        cores = parallel::detectCores(), 
+                        pareto_smoothing_all = TRUE,
+                        calculate_covariance = FALSE)
+  numi[[j]] <- res$numi
+  deni[[j]] <- res$deni
+  results_bruteforce <- rbind(results_bruteforce, data.frame(logml = res$logml, 
+                                       pareto_k_numi = res$pareto_k_numi, 
+                                       pareto_k_deni = res$pareto_k_deni,
+                                       mcse_logml = res$mcse_logml
+                                       ))
+}
+numi <- I(list(numi))
+deni <- I(list(deni))
+pareto_k_numi_10_brute <- extract_khat(numi, n_draws = 10)[[1]]
+pareto_k_deni_10_brute <- extract_khat(deni, n_draws = 10)[[1]]
+pareto_k_numi_20_brute <- extract_khat(numi, n_draws = 20)[[1]]
+pareto_k_deni_20_brute <- extract_khat(deni, n_draws = 20)[[1]]
+results_bruteforce <- cbind(results_bruteforce, pareto_k_numi_10_brute, pareto_k_deni_10_brute, pareto_k_numi_20_brute, pareto_k_deni_20_brute)
+write.csv(results_bruteforce, file = "pathfinderbirthdays_bruteforce_smoothed_no_cov.csv", row.names = FALSE)
