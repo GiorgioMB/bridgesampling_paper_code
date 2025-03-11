@@ -41,4 +41,4 @@ This will execute the analysis using the predefined model and data from `posteri
 ## Contacts
 For any queries related to the repository, please contact:
 
-giorgio.micaletto@studbocconi.it
+gmicaletto@uchicago.edu
