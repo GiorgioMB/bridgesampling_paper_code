@@ -32,7 +32,8 @@ init_val <- model_cmdstanr$pathfinder(data = data,
                                       max_lbfgs_iters = 100, 
                                       psis_resample = FALSE)
 fit_stan <- model_cmdstanr$sample(data = data,
-                                  chains = 4, 
+                                  chains = 4,
+                                  parallel_chains = 4, 
                                   iter_warmup = 1000, 
                                   iter_sampling = 4000, 
                                   thin = 1, 
@@ -141,7 +142,6 @@ for (j in 1:length(res)) {
                                         pareto_k_deni20 = pareto_k_deni_20[[j]]
                                        ))
 }
-
 write.csv(results, file = "covid_imperial_pathfinder_smoothed.csv", row.names = FALSE)
 
 res <- bridge_sampler(fit_stan, 
@@ -194,7 +194,8 @@ for (i in 1:100) {
                                         max_lbfgs_iters = 100, 
                                         psis_resample = FALSE)
   fit_stan <- model_cmdstanr$sample(data = data,
-                                    chains = 4, 
+                                    chains = 4,
+                                    parallel_chains = 4, 
                                     iter_warmup = 1000, 
                                     iter_sampling = 4000, 
                                     thin = 1, 
@@ -238,7 +239,8 @@ for (i in 1:100) {
                                         max_lbfgs_iters = 100, 
                                         psis_resample = FALSE)
   fit_stan <- model_cmdstanr$sample(data = data,
-                                    chains = 4, 
+                                    chains = 4,                                    
+                                    parallel_chains = 4,  
                                     iter_warmup = 1000, 
                                     iter_sampling = 4000, 
                                     thin = 1, 
@@ -282,7 +284,8 @@ for (i in 1:100) {
                                         max_lbfgs_iters = 100, 
                                         psis_resample = FALSE)
   fit_stan <- model_cmdstanr$sample(data = data,
-                                    chains = 4, 
+                                    chains = 4,
+                                    parallel_chains = 4, 
                                     iter_warmup = 1000, 
                                     iter_sampling = 4000, 
                                     thin = 1, 
@@ -327,7 +330,8 @@ for (i in 1:100) {
                                         max_lbfgs_iters = 100, 
                                         psis_resample = FALSE)
   fit_stan <- model_cmdstanr$sample(data = data,
-                                    chains = 4, 
+                                    chains = 4,                                     
+                                    parallel_chains = 4, 
                                     iter_warmup = 1000, 
                                     iter_sampling = 4000, 
                                     thin = 1, 
