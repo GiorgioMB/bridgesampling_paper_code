@@ -32,9 +32,10 @@ init_val <- model_cmdstanr$pathfinder(data = data,
                                       max_lbfgs_iters = 100, 
                                       psis_resample = FALSE)
 fit_stan <- model_cmdstanr$sample(data = data,
-                                  chains = 4, 
+                                  chains = 4,
+                                  parallel_chains = 4, 
                                   iter_warmup = 1000, 
-                                  iter_sampling = 4000, 
+                                  iter_sampling = 9000, 
                                   thin = 1, 
                                   init = init_val,
                                   seed = 1)
@@ -195,6 +196,7 @@ for (i in 1:100) {
                                         psis_resample = FALSE)
   fit_stan <- model_cmdstanr$sample(data = data,
                                     chains = 4, 
+                                    parallel_chains = 4,
                                     iter_warmup = 1000, 
                                     iter_sampling = 4000, 
                                     thin = 1, 
@@ -239,6 +241,7 @@ for (i in 1:100) {
                                         psis_resample = FALSE)
   fit_stan <- model_cmdstanr$sample(data = data,
                                     chains = 4, 
+                                    parallel_chains = 4, 
                                     iter_warmup = 1000, 
                                     iter_sampling = 4000, 
                                     thin = 1, 
@@ -283,6 +286,7 @@ for (i in 1:100) {
                                         psis_resample = FALSE)
   fit_stan <- model_cmdstanr$sample(data = data,
                                     chains = 4, 
+                                    parallel_chains = 4,
                                     iter_warmup = 1000, 
                                     iter_sampling = 4000, 
                                     thin = 1, 
@@ -328,6 +332,7 @@ for (i in 1:100) {
                                         psis_resample = FALSE)
   fit_stan <- model_cmdstanr$sample(data = data,
                                     chains = 4, 
+                                    parallel_chains = 4,
                                     iter_warmup = 1000, 
                                     iter_sampling = 4000, 
                                     thin = 1, 
