@@ -121,6 +121,8 @@ for (j in 1:length(res)) {
 
 write.csv(results, file = "glmm_data_poisson_model_pathfinder_smoothed_no_cov.csv", row.names = FALSE)
 
+
+
 attempt_fit <- function(calculate_covariance = TRUE,
                         pareto_smoothing_all = FALSE,
                         sig_figs = 12) {
