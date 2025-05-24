@@ -121,34 +121,68 @@ for (j in 1:length(res)) {
 
 write.csv(results, file = "glmm_data_poisson_model_pathfinder_smoothed_no_cov.csv", row.names = FALSE)
 
+attempt_fit <- function(calculate_covariance = TRUE,
+                        pareto_smoothing_all = FALSE,
+                        sig_figs = 12) {
+  repeat {
+    try_res <- tryCatch({
+      model_cmdstanr <- cmdstan_model(
+        "GLMM_Poisson_data-GLMM_Poisson_model.stan",
+        force_recompile = TRUE
+      )
+
+      init_val <- model_cmdstanr$pathfinder(
+        data              = data,
+        sig_figs          = sig_figs,
+        num_paths         = 10,
+        single_path_draws = 40,
+        draws             = 400,
+        history_size      = 50,
+        max_lbfgs_iters   = 100,
+        psis_resample     = FALSE
+      )
+
+      fit_stan <- model_cmdstanr$sample(
+        data             = data,
+        chains           = 4,
+        parallel_chains  = 4,
+        iter_warmup      = 1000,
+        iter_sampling    = 9000,
+        thin             = 1,
+        sig_figs         = sig_figs,
+        init             = init_val
+      )
+
+      res <- bridge_sampler(
+        fit_stan,
+        return_always        = TRUE,
+        verbose              = TRUE,
+        cores                = parallel::detectCores(),
+        calculate_covariance = calculate_covariance,
+        pareto_smoothing_all = pareto_smoothing_all
+      )
+
+      list(res = res)  # success path
+    }, error = function(e) {
+      message("Attempt failed: ", e$message)
+      NULL  
+    })
+
+    if (!is.null(try_res)) return(try_res$res)
+    message("Retrying …")
+  }
+}
 
 results_bruteforce <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
 numi <- numeric(100)
 deni <- numeric(100)
 for (i in 1:100) {
   print(paste("Iteration", i))
-  model_cmdstanr <- cmdstan_model("GLMM_Poisson_data-GLMM_Poisson_model.stan", force_recompile = TRUE)
-  init_val <- model_cmdstanr$pathfinder(data = data, 
-                                        num_paths = 10, 
-                                        single_path_draws = 40, 
-                                        draws = 400, 
-                                        history_size = 50, 
-                                        max_lbfgs_iters = 100, 
-                                        psis_resample = FALSE)
-  fit_stan <- model_cmdstanr$sample(data = data,
-                                    chains = 4, 
-                                    parallel_chains = 4,
-                                    iter_warmup = 1000, 
-                                    iter_sampling = 9000, 
-                                    thin = 1, 
-                                    init = init_val,
-                                    seed = i)
-  res <- bridge_sampler(fit_stan,
-                        seed = i, 
-                        return_always = TRUE, 
-                        verbose = TRUE, 
-                        cores = parallel::detectCores(),
-                        calculate_covariance = TRUE)
+  res <- attempt_fit(
+    calculate_covariance = TRUE,
+    pareto_smoothing_all = FALSE,
+    sig_figs = 12
+  )
   numi[[i]] <- res$numi
   deni[[i]] <- res$deni
   results_bruteforce <- rbind(results_bruteforce, data.frame(logml = res$logml, 
@@ -165,28 +199,11 @@ numi <- numeric(100)
 deni <- numeric(100)
 for (i in 1:100) {
   print(paste("Iteration", i))
-  model_cmdstanr <- cmdstan_model("GLMM_Poisson_data-GLMM_Poisson_model.stan", force_recompile = TRUE)
-  init_val <- model_cmdstanr$pathfinder(data = data, 
-                                        num_paths = 10, 
-                                        single_path_draws = 40, 
-                                        draws = 400, 
-                                        history_size = 50, 
-                                        max_lbfgs_iters = 100, 
-                                        psis_resample = FALSE)
-  fit_stan <- model_cmdstanr$sample(data = data,
-                                    chains = 4, 
-                                    parallel_chains = 4, 
-                                    iter_warmup = 1000, 
-                                    iter_sampling = 9000, 
-                                    thin = 1, 
-                                    init = init_val,
-                                    seed = i)
-  res <- bridge_sampler(fit_stan,
-                        seed = i, 
-                        return_always = TRUE, 
-                        verbose = TRUE, 
-                        cores = parallel::detectCores(),
-                        calculate_covariance = FALSE)
+  res <- attempt_fit(
+    calculate_covariance = FALSE,
+    pareto_smoothing_all = FALSE,
+    sig_figs = 12
+  )
   numi[[i]] <- res$numi
   deni[[i]] <- res$deni
   results_bruteforce <- rbind(results_bruteforce, data.frame(logml = res$logml, 
@@ -203,29 +220,11 @@ numi <- numeric(100)
 deni <- numeric(100)
 for (i in 1:100) {
   print(paste("Iteration", i))
-  model_cmdstanr <- cmdstan_model("GLMM_Poisson_data-GLMM_Poisson_model.stan", force_recompile = TRUE)
-  init_val <- model_cmdstanr$pathfinder(data = data, 
-                                        num_paths = 10, 
-                                        single_path_draws = 40, 
-                                        draws = 400, 
-                                        history_size = 50, 
-                                        max_lbfgs_iters = 100, 
-                                        psis_resample = FALSE)
-  fit_stan <- model_cmdstanr$sample(data = data,
-                                    chains = 4, 
-                                    parallel_chains = 4,
-                                    iter_warmup = 1000, 
-                                    iter_sampling = 9000, 
-                                    thin = 1, 
-                                    init = init_val,
-                                    seed = i)
-  res <- bridge_sampler(fit_stan,
-                        seed = i, 
-                        return_always = TRUE, 
-                        verbose = TRUE, 
-                        cores = parallel::detectCores(), 
-                        pareto_smoothing_all = TRUE,
-                        calculate_covariance = TRUE)
+  res <- attempt_fit(
+    calculate_covariance = TRUE,
+    pareto_smoothing_all = TRUE,
+    sig_figs = 12
+  )
   numi[[i]] <- res$numi
   deni[[i]] <- res$deni
   results_bruteforce <- rbind(results_bruteforce, data.frame(logml = res$logml, 
@@ -242,29 +241,11 @@ numi <- numeric(100)
 deni <- numeric(100)
 for (i in 1:100) {
   print(paste("Iteration", i))
-  model_cmdstanr <- cmdstan_model("GLMM_Poisson_data-GLMM_Poisson_model.stan", force_recompile = TRUE)
-  init_val <- model_cmdstanr$pathfinder(data = data, 
-                                        num_paths = 10, 
-                                        single_path_draws = 40, 
-                                        draws = 400, 
-                                        history_size = 50, 
-                                        max_lbfgs_iters = 100, 
-                                        psis_resample = FALSE)
-  fit_stan <- model_cmdstanr$sample(data = data,
-                                    chains = 4, 
-                                    parallel_chains = 4,
-                                    iter_warmup = 1000, 
-                                    iter_sampling = 9000, 
-                                    thin = 1, 
-                                    init = init_val,
-                                    seed = i)
-  res <- bridge_sampler(fit_stan,
-                        seed = i, 
-                        return_always = TRUE, 
-                        verbose = TRUE, 
-                        cores = parallel::detectCores(), 
-                        pareto_smoothing_all = TRUE,
-                        calculate_covariance = FALSE)
+  res <- attempt_fit(
+    calculate_covariance = FALSE,
+    pareto_smoothing_all = TRUE,
+    sig_figs = 12
+  )
   numi[[i]] <- res$numi
   deni[[i]] <- res$deni
   results_bruteforce <- rbind(results_bruteforce, data.frame(logml = res$logml, 
