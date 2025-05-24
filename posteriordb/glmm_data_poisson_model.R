@@ -169,7 +169,7 @@ attempt_fit <- function(calculate_covariance = TRUE,
     })
 
     if (!is.null(try_res)) return(try_res$res)
-    message("Retrying …")
+    message("Retrying...")
   }
 }
 
