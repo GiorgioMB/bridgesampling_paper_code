@@ -18,12 +18,12 @@ source("./utils/sim_pf.R")
 source("./utils/lp_utils.R")
 set.seed(123)
 pd <- pdb_github()
-po <- posterior("Mh_data-Mh_model", pdb = pd)
+po <- posterior("Mth_data-Mth_model", pdb = pd)
 sc <- stan_code(po)
 data <- get_data(po)
 model <- stan_model(model_code = sc)
-write_stan_file(sc, dir = getwd(), basename = "Mh_data-Mh_model.stan")
-model_cmdstanr <- cmdstan_model("Mh_data-Mh_model.stan", force_recompile = TRUE)
+write_stan_file(sc, dir = getwd(), basename = "Mth_data-Mth_model.stan")
+model_cmdstanr <- cmdstan_model("Mth_data-Mth_model.stan", force_recompile = TRUE)
 init_val <- model_cmdstanr$pathfinder(data = data, 
                                       num_paths = 10, 
                                       single_path_draws = 40, 
@@ -58,7 +58,7 @@ for (j in 1:length(res)) {
                                        ))
 }
 
-write.csv(results, file = "mh_data_model_pathfinder.csv", row.names = FALSE)
+write.csv(results, file = "mth_data_model_pathfinder.csv", row.names = FALSE)
 
 res <- bridge_sampler(fit_stan, 
                       num_splits = 6, 
@@ -77,7 +77,7 @@ for (j in 1:length(res)) {
                                        ))
 }
 
-write.csv(results, file = "mh_data_model_pathfinder_no_cov.csv", row.names = FALSE)
+write.csv(results, file = "mth_data_model_pathfinder_no_cov.csv", row.names = FALSE)
 
 
 
@@ -99,7 +99,7 @@ for (j in 1:length(res)) {
                                        ))
 }
 
-write.csv(results, file = "mh_data_model_pathfinder_smoothed.csv", row.names = FALSE)
+write.csv(results, file = "mth_data_model_pathfinder_smoothed.csv", row.names = FALSE)
 
 res <- bridge_sampler(fit_stan,
                       num_splits = 6, 
@@ -119,7 +119,7 @@ for (j in 1:length(res)) {
                                        ))
 }
 
-write.csv(results, file = "mh_data_model_pathfinder_smoothed_no_cov.csv", row.names = FALSE)
+write.csv(results, file = "mth_data_model_pathfinder_smoothed_no_cov.csv", row.names = FALSE)
 
 attempt_fit <- function(calculate_covariance = TRUE,
                         pareto_smoothing_all = FALSE,
@@ -127,7 +127,7 @@ attempt_fit <- function(calculate_covariance = TRUE,
   repeat {
     try_res <- tryCatch({
       model_cmdstanr <- cmdstan_model(
-        "Mh_data-Mh_model.stan",
+        "Mth_data-Mth_model.stan",
         force_recompile = TRUE
       )
 
@@ -191,7 +191,7 @@ for (i in 1:100) {
                                        mcse_logml = res$mcse_logml
                                        ))
 }
-write.csv(results_bruteforce, file = "mh_data_model_pathfinder_bruteforce.csv", row.names = FALSE)
+write.csv(results_bruteforce, file = "mth_data_model_pathfinder_bruteforce.csv", row.names = FALSE)
 
 
 results_bruteforce <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
@@ -212,7 +212,7 @@ for (i in 1:100) {
                                        mcse_logml = res$mcse_logml
                                        ))
 }
-write.csv(results_bruteforce, file = "mh_data_model_pathfinder_bruteforce_no_cov.csv", row.names = FALSE)
+write.csv(results_bruteforce, file = "mth_data_model_pathfinder_bruteforce_no_cov.csv", row.names = FALSE)
 
 
 results_bruteforce <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
@@ -233,7 +233,7 @@ for (i in 1:100) {
                                        mcse_logml = res$mcse_logml
                                        ))
 }
-write.csv(results_bruteforce, file = "mh_data_model_pathfinder_bruteforce_smoothed.csv", row.names = FALSE)
+write.csv(results_bruteforce, file = "mth_data_model_pathfinder_bruteforce_smoothed.csv", row.names = FALSE)
 
 
 results_bruteforce <- data.frame(logml = numeric(), pareto_k_numi = numeric(), pareto_k_deni = numeric(), mcse_logml = numeric())
@@ -254,4 +254,4 @@ for (i in 1:100) {
                                        mcse_logml = res$mcse_logml
                                        ))
 }
-write.csv(results_bruteforce, file = "mh_data_model_pathfinder_bruteforce_smoothed_no_cov.csv", row.names = FALSE)
+write.csv(results_bruteforce, file = "mth_data_model_pathfinder_bruteforce_smoothed_no_cov.csv", row.names = FALSE)
