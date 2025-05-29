@@ -60,6 +60,7 @@ for (j in 1:length(res)) {
 
 write.csv(results, file = "mtbh_data_model_pathfinder.csv", row.names = FALSE)
 
+
 res <- bridge_sampler(fit_stan, 
                       num_splits = 6, 
                       total_perms = 100, 
