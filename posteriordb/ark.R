@@ -31,6 +31,7 @@ init_val <- model_cmdstanr$pathfinder(data = data,
                                       history_size = 50, 
                                       max_lbfgs_iters = 100, 
                                       psis_resample = FALSE)
+
 fit_stan <- model_cmdstanr$sample(data = data,
                                   chains = 4, 
                                   iter_warmup = 1000, 
