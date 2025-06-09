@@ -116,6 +116,7 @@ apply(settings, 1, function(ss) {
 attempt_fit <- function(calculate_covariance = TRUE,
                         pareto_smoothing_all = FALSE,
                         use_ess              = FALSE,
+                        seed                 = 1,
                         sig_figs             = 9) {
   repeat {
     try_res <- tryCatch({
@@ -140,7 +141,7 @@ attempt_fit <- function(calculate_covariance = TRUE,
       )
       bridge_sampler(
         fit_stan_tmp,
-        seed                 = 1,
+        seed                 = seed,
         return_always        = TRUE,
         verbose              = TRUE,
         use_ess              = use_ess,
@@ -175,6 +176,7 @@ run_bruteforce <- function(calculate_covariance = TRUE,
       calculate_covariance = calculate_covariance,
       pareto_smoothing_all = pareto_smoothing_all,
       use_ess              = use_ess,
+      seed                 = i,
       sig_figs             = sig_figs
     )
 
