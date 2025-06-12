@@ -105,12 +105,13 @@ settings <- expand.grid(calculate_covariance = c(TRUE, FALSE),
                         pareto_smoothing_all = c(FALSE, TRUE),
                         use_ess              = c(FALSE, TRUE),
                         KEEP.OUT.ATTRS       = FALSE)
-#apply(settings, 1, function(ss) {
-#  run_bridge(fit_stan,
-#             calculate_covariance = ss[["calculate_covariance"]],
-#             pareto_smoothing_all = ss[["pareto_smoothing_all"]],
-#             use_ess              = ss[["use_ess"]])
-#})
+apply(settings, 1, function(ss) {
+  run_bridge(fit_stan,
+             calculate_covariance = ss[["calculate_covariance"]],
+             pareto_smoothing_all = ss[["pareto_smoothing_all"]],
+             use_ess              = ss[["use_ess"]])
+
+})
 
 attempt_fit <- function(calculate_covariance = TRUE,
                         pareto_smoothing_all = FALSE,
@@ -213,9 +214,9 @@ run_bruteforce <- function(calculate_covariance = TRUE,
   invisible(results_bruteforce)
 }
 
-settings_bf <- expand.grid(calculate_covariance = FALSE,#c(TRUE, FALSE),
-                           pareto_smoothing_all = FALSE,#c(FALSE, TRUE),
-                           use_ess              = TRUE, #c(FALSE, TRUE),
+settings_bf <- expand.grid(calculate_covariance = c(TRUE, FALSE),
+                           pareto_smoothing_all = c(FALSE, TRUE),
+                           use_ess              = c(FALSE, TRUE),
                            KEEP.OUT.ATTRS       = FALSE)
 
 apply(settings_bf, 1, function(ss) {
