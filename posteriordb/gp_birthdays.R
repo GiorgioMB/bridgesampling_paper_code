@@ -14,7 +14,7 @@ suppressPackageStartupMessages({
   library(bayesplot)
   library(posteriordb)
   library(posterior)
-  library(readr)           # ← NEW  read_csv()
+  library(readr)           
   library(dplyr) 
 })
 options(mc.cores = parallel::detectCores())
