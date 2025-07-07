@@ -233,9 +233,9 @@ settings_bf <- expand.grid(calculate_covariance = c(TRUE, FALSE),
 
 apply(settings_bf, 1, function(ss) {
   run_bruteforce(
-    calculate_covariance = ss[["calculate_covariance"]],
-    pareto_smoothing_all = ss[["pareto_smoothing_all"]],
+    calculate_covariance = as.logical(ss[["calculate_covariance"]]),
+    pareto_smoothing_all = as.logical(ss[["pareto_smoothing_all"]]),
     method               = ss[["method"]],
-    use_ess              = ss[["use_ess"]]
+    use_ess              = as.logical(ss[["use_ess"]])
   )
 })
