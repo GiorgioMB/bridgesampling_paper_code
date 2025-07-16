@@ -7,33 +7,26 @@ library(Brobdingnag)
 printf <- function(msg, ...) cat(sprintf(msg, ...), "\n")
 
 extract_khat <- function(nested_list, n_draws = 10) {
-  # Initialize an empty list to store the results
-  result <- vector("list", length(nested_list))
-  
-  # Iterate over the outermost list
+  out <- vector("list", length(nested_list))
   for (i in seq_along(nested_list)) {
-    current_list <- nested_list[[i]]
-    result[[i]] <- vector("list", length(current_list))
-    # Iterate over the second level list
-    for (j in seq_along(current_list)) {
-      # Safely convert to numeric
-      numeric_vector <- numeric_vector <- unlist(current_list[[j]])
-      if (class(numeric_vector) == "list") {
-        numeric_vector <- as.numeric(numeric_vector[[1]])
+    sub <- nested_list[[i]]
+    out[[i]] <- vector("list", length(sub))
+    for (j in seq_along(sub)) {
+      v <- unlist(sub[[j]])
+      if (length(v) == 0L || all(is.na(v))) {
+        out[[i]][[j]] <- NA_real_
+      } else {
+        v <- as.numeric(v)
+        out[[i]][[j]] <- pareto_khat(v,
+                                     ndraws_tail = n_draws,
+                                     tail        = "right",
+                                     r_eff       = 1)
       }
-      smoothed <- pareto_khat(numeric_vector, 
-                                ndraws_tail = n_draws, 
-                                tail = "right", 
-                                r_eff = 1)
-      # Extract only `khat` and store it
-      result[[i]][[j]] <- smoothed
     }
-    print(i)
   }
-  
-  # Simplify the result to a [94, 100] structure
-  return(lapply(result, unlist))
+  lapply(out, unlist)
 }
+
 
 
 to_posterior <- function(model, data) {
