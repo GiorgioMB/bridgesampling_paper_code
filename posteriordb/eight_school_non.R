@@ -22,8 +22,8 @@ set.seed(123)
 pd  <- pdb_github()
 po  <- posterior("eight_schools-eight_schools_noncentered", pdb = pd)
 sc  <- stan_code(po)
-write_stan_file(sc, dir = getwd(), basename = "eight_schools_non.stan.stan")
-model_cmdstanr <- cmdstan_model("eight_schools_non.stan.stan", force_recompile = TRUE)
+write_stan_file(sc, dir = getwd(), basename = "eight_schools_non.stan")
+model_cmdstanr <- cmdstan_model("eight_schools_non.stan", force_recompile = TRUE)
 data <- get_data(po)
 
 
