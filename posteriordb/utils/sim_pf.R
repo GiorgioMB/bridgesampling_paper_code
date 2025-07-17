@@ -8,8 +8,9 @@ library(Brobdingnag)
 printf <- function(msg, ...) cat(sprintf(msg, ...), "\n")
 
 as_num_safe <- function(x) {
-  if (inherits(x, "brob")) Brobdingnag::as.double(x) else x
+  if (inherits(x, "brob")) as.numeric(x) else x
 }
+
 
 extract_khat <- function(nested_list, n_draws = 10) {
   out <- vector("list", length(nested_list))
