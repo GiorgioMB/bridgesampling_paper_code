@@ -1,5 +1,6 @@
 library(loo)
 library(Matrix)
+library(purrr)
 library(matrixStats)
 library(optimx)
 library(Brobdingnag)
@@ -12,19 +13,20 @@ extract_khat <- function(nested_list, n_draws = 10) {
     sub <- nested_list[[i]]
     out[[i]] <- vector("list", length(sub))
     for (j in seq_along(sub)) {
-      v <- unlist(sub[[j]])
+      v <- flatten_dbl(sub[[j]])  
       if (length(v) == 0L || all(is.na(v))) {
         out[[i]][[j]] <- NA_real_
       } else {
-        v <- as.numeric(v)
-        out[[i]][[j]] <- pareto_khat(v,
-                                     ndraws_tail = n_draws,
-                                     tail        = "right",
-                                     r_eff       = 1)
+        out[[i]][[j]] <- pareto_khat(
+          v,
+          ndraws_tail = n_draws,
+          tail        = "right",
+          r_eff       = 1
+        )
       }
     }
   }
-  lapply(out, unlist)
+  lapply(out, unlist, use.names = FALSE)
 }
 
 
