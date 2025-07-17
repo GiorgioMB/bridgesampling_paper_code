@@ -7,13 +7,21 @@ library(Brobdingnag)
 
 printf <- function(msg, ...) cat(sprintf(msg, ...), "\n")
 
+as_num_safe <- function(x) {
+  if (inherits(x, "brob")) Brobdingnag::as.double(x) else x
+}
+
 extract_khat <- function(nested_list, n_draws = 10) {
   out <- vector("list", length(nested_list))
+
   for (i in seq_along(nested_list)) {
     sub <- nested_list[[i]]
     out[[i]] <- vector("list", length(sub))
+
     for (j in seq_along(sub)) {
-      v <- flatten_dbl(sub[[j]])  
+      v <- sub[[j]]               %>%           
+           map(as_num_safe)       %>%           
+           flatten_dbl()                       
       if (length(v) == 0L || all(is.na(v))) {
         out[[i]][[j]] <- NA_real_
       } else {
@@ -26,10 +34,9 @@ extract_khat <- function(nested_list, n_draws = 10) {
       }
     }
   }
+
   lapply(out, unlist, use.names = FALSE)
 }
-
-
 
 to_posterior <- function(model, data) {
   sampling(model, data = data, chains = 1, iter = 1, refresh = 0,
