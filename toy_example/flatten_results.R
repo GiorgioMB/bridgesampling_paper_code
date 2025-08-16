@@ -5,63 +5,91 @@ setwd("../toy_example")
 RESULTS_DIR <- "./bridge_results"
 OUT_CSV     <- file.path(RESULTS_DIR, "bridges_all_flat.csv")
 
-nz <- function(x) if (is.null(x)) NA else x
 
-# helper: flatten into a long tibble
-flatten_component <- function(lst, estimator, measure) {
-  if (is.null(lst)) return(NULL)
-  purrr::imap_dfr(lst, function(x, idx) {
-    xv <- as.numeric(unlist(x, recursive = TRUE, use.names = FALSE))
-    if (!length(xv)) return(NULL)
-    if (length(xv) == 1L) {
-      tibble::tibble(
-        estimator = estimator,
-        replicate = as.integer(idx),
-        measure   = measure,
-        position  = NA_integer_,
-        value     = xv[1]
-      )
-    } else {
-      tibble::tibble(
-        estimator = estimator,
-        replicate = as.integer(idx),
-        measure   = measure,
-        position  = seq_along(xv),
-        value     = xv
-      )
-    }
-  })
+collect_numeric <- function(x) {
+  if (is.null(x)) return(numeric(0))
+  if (is.atomic(x) && (is.numeric(x) || is.integer(x) || is.logical(x))) {
+    return(as.numeric(x))
+  }
+  if (is.matrix(x) || is.array(x)) {
+    return(as.numeric(x))
+  }
+  if (is.list(x)) {
+    out <- numeric(0)
+    for (elt in x) out <- c(out, collect_numeric(elt))
+    return(out)
+  }
+  numeric(0)
 }
 
-# flatten one .rds object to rows
+as_scalar <- function(x) {
+  xs <- collect_numeric(x)
+  if (!length(xs)) return(NA_real_)
+  xs[[1L]]
+}
+
+get_ith <- function(lst, i) {
+  if (!is.null(lst) && length(lst) >= i) lst[[i]] else NULL
+}
+
+assemble_method <- function(method_label,
+                            logml_list,
+                            k_numi_list,
+                            k_deni_list,
+                            mcse_list) {
+  R <- max(length(logml_list), length(k_numi_list),
+           length(k_deni_list), length(mcse_list))
+  if (R == 0L) return(NULL)
+
+  rows <- vector("list", R)
+  for (i in seq_len(R)) {
+    rows[[i]] <- data.frame(
+      method         = method_label,
+      replicate      = i,
+      logml          = as_scalar(get_ith(logml_list, i)),
+      pareto_k_numi  = as_scalar(get_ith(k_numi_list, i)),
+      pareto_k_deni  = as_scalar(get_ith(k_deni_list, i)),
+      mcse_logml     = as_scalar(get_ith(mcse_list, i)),
+      stringsAsFactors = FALSE
+    )
+  }
+  do.call(rbind, rows)
+}
+
 flatten_out <- function(out, file = NA_character_) {
   cfg <- out$cfg; if (is.null(cfg)) cfg <- list()
-  parts <- list(
-    flatten_component(out$logml_reshuffling,         "split", "logml"),
-    flatten_component(out$pareto_k_numi_reshuffling, "split", "pareto_k_numi"),
-    flatten_component(out$pareto_k_deni_reshuffling, "split", "pareto_k_deni"),
-    flatten_component(out$mcse_logml_reshuffling,    "split", "mcse_logml"),
-    flatten_component(out$numi_split,                "split", "numi"),
-    flatten_component(out$deni_split,                "split", "deni"),
-    flatten_component(out$logml_brute,               "brute", "logml"),
-    flatten_component(out$pareto_k_numi_brute,       "brute", "pareto_k_numi"),
-    flatten_component(out$pareto_k_deni_brute,       "brute", "pareto_k_deni"),
-    flatten_component(out$mcse_logml_brute,          "brute", "mcse_logml"),
-    flatten_component(out$numi_brute,                "brute", "numi"),
-    flatten_component(out$deni_brute,                "brute", "deni")
+
+  df_reshuffling <- assemble_method(
+    "reshuffling",
+    out$logml_reshuffling,
+    out$pareto_k_numi_reshuffling,
+    out$pareto_k_deni_reshuffling,
+    out$mcse_logml_reshuffling
   )
-  df <- dplyr::bind_rows(parts)
-  if (!nrow(df)) return(df)
-  dplyr::mutate(
-    df,
-    k                     = nz(out$k),
-    calculate_covariance  = nz(cfg$calculate_covariance),
-    pareto_smoothing_all  = nz(cfg$pareto_smoothing_all),
-    use_ess               = nz(cfg$use_ess),
-    cores_per_task        = nz(cfg$cores_per_task),
-    file                  = file,
-    .before = 1
+
+  df_mcmc <- assemble_method(
+    "mcmc",
+    out$logml_brute,
+    out$pareto_k_numi_brute,
+    out$pareto_k_deni_brute,
+    out$mcse_logml_brute
   )
+
+  parts <- Filter(Negate(is.null), list(df_reshuffling, df_mcmc))
+  if (!length(parts)) return(data.frame())
+
+  df <- do.call(rbind, parts)
+
+  # add metadata (leftmost)
+  meta <- data.frame(
+    file                 = file,
+    k                    = if (is.null(out$k)) NA else out$k,
+    calculate_covariance = if (is.null(cfg$calculate_covariance)) NA else cfg$calculate_covariance,
+    pareto_smoothing_all = if (is.null(cfg$pareto_smoothing_all)) NA else cfg$pareto_smoothing_all,
+    use_ess              = if (is.null(cfg$use_ess)) NA else cfg$use_ess,
+    stringsAsFactors     = FALSE
+  )
+  cbind(meta[rep(1L, nrow(df)), , drop = FALSE], df)
 }
 
 choose_writer <- function() {
@@ -87,6 +115,7 @@ write_long_csv <- function(results_dir = RESULTS_DIR, out_csv = OUT_CSV) {
   if (file.exists(out_csv)) file.remove(out_csv)
 
   for (f in files) {
+    cat("Processing file:", f, "\n")
     out <- tryCatch(readRDS(f), error = function(e) {
       message("Skipping ", basename(f), " (readRDS failed): ", conditionMessage(e))
       NULL
@@ -109,3 +138,13 @@ write_long_csv <- function(results_dir = RESULTS_DIR, out_csv = OUT_CSV) {
 }
 
 write_long_csv()
+
+bridges_all_flat <- read.csv(OUT_CSV, stringsAsFactors = FALSE)
+unique_k_values <- unique(bridges_all_flat$k)
+sorted_k_values <- sort(unique_k_values, na.last = TRUE)
+if (all(10:104 %in% sorted_k_values)) {
+  message("All k values from 10 to 104 are present.")
+} else {
+  missing_k <- setdiff(10:104, sorted_k_values)
+  message("Missing k values: ", paste(missing_k, collapse = ", "))
+}
