@@ -91,7 +91,7 @@ for (k in 10:103) {
   )
   results <- rbind(results, new_row)
   print("Saving progress")
-  saveRDS(results, "/scratch/work/micaleg1/bridge_sampling/glm_storing_everything_no_cov.rds")
+  saveRDS(results, "../toy_example/glm_storing_everything_no_cov.rds")
   print("Progress saved")
   print(paste("Number of covariates", k, "finished"))
 }
