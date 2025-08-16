@@ -40,7 +40,7 @@ invisible(
 )
 ### ---------------------------------------------------------------------------
 
-setwd("/scratch/work/micaleg1/bridge_sampling")  
+setwd("../toy_example")  
 # ---------- Global options ----------------------------------------------------
 SEED_BASE              <- 1L                  # reproducibility for data & model draws
 N_OBS                  <- 100L                # sample size per simulated data set
