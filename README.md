@@ -1,5 +1,5 @@
 # Estimating Marginal Likelihoods Using Bridgesampling
-This repository contains the code and data for a research project focused on estimating marginal likelihoods using the bridgesampling technique. The experiments are divided into two main parts: analysis using posterior distributions from the `posteriorDB` project and a toy example exploring the effects of increasing the number of covariates in a generalized linear model (GLM).
+This repository contains the code and data for a [paper](https://arxiv.org/abs/2508.14487) proposing diagnostic methods for bridgesampling. The experiments are divided into two main parts: analysis using posterior distributions from the `posteriorDB` project and a toy example exploring the effects of increasing the number of covariates in a generalized linear model (GLM).
 
 ## Repository Structure
 - `posteriordb/`: Contains the main experiments that apply bridgesampling to various posterior distributions curated from the `posteriorDB`. This folder includes both R scripts and Stan models that are essential for replicating the findings and further exploration.
